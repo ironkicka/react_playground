@@ -56,6 +56,8 @@ const storiesReducer = (state,action) =>{
 
 const API_ENDPOINT = 'https://hn.algolia.com/api/v1/search?query=';
 
+
+
 const App = () => {
   const [searchTerm, setSearchTerm] = useSemiPersistentState(
     'search',
@@ -66,8 +68,7 @@ const App = () => {
     storiesReducer,
     {data:[],isLoading:false,isError:false,isNoResult: false}
   );
-
-  React.useEffect(()=>{
+  const handleFetchStroies = React.useCallback(()=>{
     if(searchTerm === '') return;
 
     dispatchStories({type:'STORIES_FETCH_INIT'})
@@ -75,7 +76,6 @@ const App = () => {
       .then(response=>response.json())
       .then(result=>{
         if(result.hits.length===0){
-          console.log('kara')
           dispatchStories({
             type:'STORIES_FETCH_NO_RESULTS'
           });
@@ -87,9 +87,13 @@ const App = () => {
         }
       })
       .catch(()=>{
-      dispatchStories({type:'STORIES_FETCH_FAILURE'})
+        dispatchStories({type:'STORIES_FETCH_FAILURE'})
       })
   },[searchTerm])
+
+  React.useEffect(()=>{
+    handleFetchStroies();
+  },[handleFetchStroies])
 
   const handleRemoveStory = item =>{
     dispatchStories({
