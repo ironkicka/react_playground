@@ -19,13 +19,22 @@ const storiesReducer = (state,action) =>{
         ...state,
         isLoading:true,
         isError:false,
+        isNoResult: false,
       }
     case 'STORIES_FETCH_SUCCESS':
       return {
         ...state,
         isLoading:false,
         isError: false,
+        isNoResult: false,
         data:action.payload,
+      }
+    case 'STORIES_FETCH_NO_RESULTS':
+      return {
+        ...state,
+        isLoading: false,
+        isNoResult:true,
+        data:[]
       }
     case 'STORIES_FETCH_FAILURE':
       return {
@@ -55,7 +64,7 @@ const App = () => {
 
   const [stories,dispatchStories]=React.useReducer(
     storiesReducer,
-    {data:[],isLoading:false,isError:false}
+    {data:[],isLoading:false,isError:false,isNoResult: false}
   );
 
   React.useEffect(()=>{
@@ -65,10 +74,17 @@ const App = () => {
     fetch(`${API_ENDPOINT}${searchTerm}`)
       .then(response=>response.json())
       .then(result=>{
-        dispatchStories({
+        if(result.hits.length===0){
+          console.log('kara')
+          dispatchStories({
+            type:'STORIES_FETCH_NO_RESULTS'
+          });
+        }else{
+          dispatchStories({
             type:'STORIES_FETCH_SUCCESS',
             payload:result.hits,
           });
+        }
       })
       .catch(()=>{
       dispatchStories({type:'STORIES_FETCH_FAILURE'})
@@ -86,10 +102,6 @@ const App = () => {
     setSearchTerm(event.target.value);
   };
 
-  const searchedStories = stories.data.filter(story =>
-    story.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   return (
     <div>
       <h1>My Hacker Stories</h1>
@@ -103,6 +115,7 @@ const App = () => {
       </InputWithLabel>
 
       <hr />
+      {stories.isNoResult && <p>No Results ... </p>}
       {stories.isError && <p>Something went wrong ... </p>}
       {stories.isLoading?(
         <p>Loading ... </p>
