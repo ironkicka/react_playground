@@ -1,4 +1,5 @@
 import React from 'react';
+import axios from 'axios';
 
 const useSemiPersistentState = (key, initialState) => {
   const [value, setValue] = React.useState(
@@ -75,19 +76,13 @@ const App = () => {
 
   const handleFetchStroies = React.useCallback(()=>{
     dispatchStories({type:'STORIES_FETCH_INIT'})
-    fetch(url)
-      .then(response=>response.json())
+    axios
+      .get(url)
       .then(result=>{
-        if(result.hits.length===0){
-          dispatchStories({
-            type:'STORIES_FETCH_NO_RESULTS'
-          });
-        }else{
           dispatchStories({
             type:'STORIES_FETCH_SUCCESS',
-            payload:result.hits,
+            payload:result.data.hits,
           });
-        }
       })
       .catch(()=>{
         dispatchStories({type:'STORIES_FETCH_FAILURE'})
